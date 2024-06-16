@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Shooter Physics</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap"
+            rel="stylesheet"
+        />
+       <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <!-- game test -->
+        <div id="start-screen">
+            <p>arrowkeys or wasd
+                <br />spacebar
+            </p>
+            <p>click to start</p>
+        </div>
+        <canvas id="game-canvas" width="100" height="100"></canvas>
+        <p id="score-box" class="text-box">00</p>
+        <p id="timer-box" class="text-box">00</p>
+        <div id="dev-tools"><button id="show-players">SHOW PLAYERS</button></div>
+        <script src="./socket.io/socket.io.js"></script>
+        <script type="module" src="main.js"></script>
+
+        <!-- diagram view -->
+        <!-- <div id="a-1" class="point start a"></div>
+    <div id="a-2" class="point end a"></div>
+    <div id="b-1" class="point start b"></div>
+    <div id="b-2" class="point end b"></div>
+    <div id="intersect" class="point intersect"></div>
+    <div class="line" id="a"></div>
+    <div class="line" id="b"></div>
+    <script type="module" src="diagram.js"></script> -->
+        <!-- <script type="module" src="draw-circle-sweep.js"></script> -->
+    </body>
+</html>
