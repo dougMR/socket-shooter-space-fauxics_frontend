@@ -7,10 +7,12 @@ import {
     drawMissile,
     drawRectangle,
     drawShip,
+    drawNames,
     drawOnce,
     resizeCanvas,
     showTime,
     startDrawLoop,
+    setClientScore,
 } from "./module-draw.js";
 import {
     playSoundByNameString,
@@ -18,6 +20,14 @@ import {
 } from "./module-sound.js";
 import { getUUID, setUUID, clearUUID } from "./module-uuid.js";
 import "./dev-tools.js";
+import { output } from "./module-output.js";
+import "./client-inputs.js";
+import {
+    hideLeaders,
+    displayLeaders,
+    // displayAllTimeLeaders,
+} from "./module-leaderboard.js";
+import { hideNamePrompt, showNamePrompt } from "./module-name-prompt.js";
 
 // Set up keys for control
 
@@ -82,34 +92,27 @@ const stopThrust = () => {
 };
 
 const shoot = () => {
-    console.log("shoot. gameOver: ", gameOver);
+    // console.log("shoot. gameOver: ", gameOver);
     // sound
     playSoundByNameString("laserSound");
     socket.emit("broadcast_sound", "laserSound");
     socket.emit("ship_shoot", clientPlayer.id);
 };
 
-// const move = (distance) => {
-//     console.log("move()");
-//     // const oldPos = { x: clientPlayer.ship.x, y: clientPlayer.ship.y };
-//     // clientPlayer.ship.move(distance);
-//     socket.emit("move_ship", clientPlayer.id, distance);
-// };
-
 const turn = (degChange) => {
     socket.emit("rotate_ship", clientPlayer.id, degChange);
 };
 
-const showNamePrompt = () => {
-    console.log("showNamePrompt()");
-    const playerName = prompt("Create a player name.");
-    connectToServer();
-    joinGame(playerName);
-};
+//
+//  TALK TO SERVER
+//
+///////////////////////////////////////
+
 const joinGame = (playerName) => {
     console.log("joinGame()", playerName);
     if (!playerName) {
-        playerName = prompt("Create a player name.");
+        showNamePrompt();
+        return;
     }
     socket.emit(
         "join_game",
@@ -126,9 +129,10 @@ const joinGame = (playerName) => {
                 alert(serverResponse.error);
                 showNamePrompt();
             } else {
-                // --
-                // playSound(welcomeMusic);
-                // justJoined();
+                hideNamePrompt();
+                document
+                    .getElementById("start-screen")
+                    .classList.remove("hidden");
             }
         }
     );
@@ -137,14 +141,18 @@ const rejoinGame = () => {
     console.log("rejoinGame()");
     connectToServer();
     const uuid = getUUID() || setUUID();
-    console.log("uuid: ", uuid);
+    hideNamePrompt();
+
     socket.emit("rejoin_game", uuid, (response) => {
         console.log("rejoin_game response:", response);
         if (response.success) {
             // console.log("rejoined as ", response.name);
             // we are reconnected as previous player
             alert("you have rejoined as " + response.name);
+            // output("rejoined as "+response.name);
             // justJoined();
+
+            document.getElementById("start-screen").classList.remove("hidden");
         } else {
             clearUUID();
             showNamePrompt();
@@ -152,6 +160,19 @@ const rejoinGame = () => {
     });
 };
 
+const voteAllHere = (yesOrNo) => {
+    socket.emit("vote_all_here", yesOrNo);
+};
+
+// const getLeaderboard = (callback) => {
+//     socket.emit("get_leaderboard", callback);
+// };
+
+// const submitScoreToLeaderboard = async (player) => {
+//     //     console.log("submitScoreToLeaderboard()");
+//     player = player ? player : clientPlayer;
+//     socket.emit("submit_score", player);
+// };
 // Socket Stuff
 //
 ////////////////////////
@@ -162,100 +183,132 @@ const connectToServer = () => {
 
     socket.on("connect", () => {
         console.log("socket connected --> ID::", socket.id);
-        // socket.on(
-        //     "connectionPingback",
-        //     (reconnectDurationMS, serverCallback) => {
-        //         console.log("connectionPingback");
-        //         reconnectTimeLimitMS = reconnectDurationMS;
-        //         serverCallback(getUUID(), (response) => {
-        //             if (response.success) {
-        //                 console.log("rejoined as ", response.name);
-        //                 // we are reconnected as previous player
-        //                 showPrompt({
-        //                     message: "you have rejoined as " + response.name,
-        //                 });
-        //             }
-        //         });
-        //     }
-        // );
 
         socket.on("disconnect", (data) => {
             console.log("DISCONNECTED.");
             console.log("BECAUSE:", data);
         });
         // Players
-        socket.on("updatePlayers", (players) => {
+        socket.on("updatePlayers", (playersFromServer) => {
+            // !!! This is in competition with player updates from updateGameData
             console.log("updatePlayers()");
             console.log("socket.id: ", socket.id);
-            console.log("numPlayers: ", players.length);
-
+            console.log("numPlayers: ", playersFromServer.length);
+            setFrontendPlayers(playersFromServer);
             for (const player of players) {
-                console.log("player:", player);
-                // update scores
-                // update players' ships positions
-                player.ship.draw = () => {
-                    drawShip(player.ship);
-                };
+                drawShip(player.ship);
                 if (player.id === socket.id) {
-                    console.log("set clientPlayer");
                     clientPlayer = player;
+                    console.log(
+                        "     ----------------------- set clientPlayer",
+                        clientPlayer.name
+                    );
                 }
-                console.log("clientPlayer: ", clientPlayer);
+                // console.log("clientPlayer: ", clientPlayer);
             }
+            drawNames();
         });
 
         // Sounds
         socket.on("playSound", (soundString) => {
-            // console.log('"playSound"', soundString);
             playSoundByNameString(soundString);
         });
         socket.on("stopSound", (soundString) => {
             stopSoundByNameString(soundString);
         });
 
-        // Draw Game Objects
-        // socket.on("drawCircle", (circle) => {
-        //     drawCircle(circle);
-        // });
-        // socket.on("drawMissile", (missile) => {
-        //     drawMissile(missile);
-        // });
-        // socket.on("drawRectangle", (rectangle) => {
-        //     drawRectangle(rectangle);
-        // });
-        // socket.on("drawShip", (ship) => {
-        //     drawShip(ship);
-        // });
         socket.on("showTime", (remaining) => {
             showTime(remaining);
         });
         socket.on("updateGameData", (data) => {
-            // asteroids = data.asteroids;
+            // console.log('updateGameData()');
             asteroids.splice(0, Infinity, ...data.asteroids);
-            // missiles = data.missiles;
             missiles.splice(0, Infinity, ...data.missiles);
-            // if (missiles.length > 0) {
-            //     console.log(
-            //         "updateGameData",
-            //         "missiles: ",
-            //         data.missiles.length
-            //     );
-            // }
-            // debris = data.debris;
             debris.splice(0, Infinity, ...data.debris);
-            // obstacles = data.obstacles;
             obstacles.splice(0, Infinity, ...data.obstacles);
-            // ships = data.ships;
             ships.splice(0, Infinity, ...data.ships);
+            setFrontendPlayers(data.players);
+        });
+        socket.on("startGame", () => {
+            startGame();
         });
         socket.on("endGame", () => {
             console.log("\r\nendGame\r\n");
             gameOver = true;
+            displayLeaders();
+            // submitScoreToLeaderboard();
+            // displayAllTimeLeaders();
+            document.getElementById("again-button").classList.remove("hidden");
         });
     });
 };
 
 //
+
+const setFrontendPlayers = (newPlayers) => {
+    players.length = 0;
+    players.push(...newPlayers);
+    // console.log("setFrontEndPlayers():", players.map(p=>p.name));
+
+    let playersText = "";
+    for (const p of players) {
+        playersText += `<br /><div style="color: ${p.ship.color};" >${p.name} ... ${p.score}</div>`;
+        if (p.id === socket.id) clientPlayer = p;
+    }
+    setClientScore(clientPlayer.score);
+
+    output(playersText, true);
+};
+
+const imReady = (yesOrNo) => {
+    socket.emit("player_ready", yesOrNo);
+};
+
+const closeStartScreen = () => {
+    console.log("close start-screen.");
+    document.getElementById("start-screen").classList.add("hidden");
+    document.getElementById("start-options").classList.remove("hidden");
+    document.getElementById("ready").checked = false;
+    document.getElementById("all-here").checked = false;
+};
+
+const startGame = (event) => {
+    console.log("startGame()");
+    hideLeaders();
+    gameOver = false;
+    document.getElementById("start-screen").classList.add("hidden");
+    document.getElementById("start-options").classList.add("hidden");
+    startDrawLoop();
+};
+
+// LISTENERS
+
+window.addEventListener("keydown", (event) => {
+    if (document.getElementById("name-prompt").classList.contains("hidden")) {
+        Keys.handleKeyDown(event);
+    }
+});
+window.addEventListener("keyup", (event) => {
+    if (document.getElementById("name-prompt").classList.contains("hidden")) {
+        Keys.handleKeyUp(event);
+    }
+});
+window.addEventListener("resize", function () {
+    console.log("resize");
+    resizeCanvas();
+    drawOnce();
+});
+document
+    .getElementById("start-screen")
+    .addEventListener("pointerdown", closeStartScreen);
+
+document
+    .getElementById("again-button")
+    .addEventListener("pointerdown", (event) => {
+        event.target.classList.add("hidden");
+        hideLeaders();
+        closeStartScreen();
+    });
 
 // POINT OF ENTRY
 const asteroids = [];
@@ -264,41 +317,17 @@ const debris = [];
 const obstacles = [];
 const ships = [];
 
+let players = [];
 let clientPlayer = null;
-let gameOver = false;
-
-window.addEventListener("keydown", Keys.handleKeyDown);
-window.addEventListener("keyup", Keys.handleKeyUp);
-
-window.addEventListener("resize", function () {
-    resizeCanvas();
-    drawOnce();
-});
-window.dispatchEvent(new Event("resize"));
-
-const startGame = (event) => {
-    gameOver = false;
-    document.getElementById("start-screen").style.display = "none";
-    socket.emit("start_game");
-    startDrawLoop();
-};
-document
-    .getElementById("start-screen")
-    .addEventListener("pointerdown", startGame);
-//
+let gameOver = true;
 let socket;
 
-// const getTempPlayerName = () => {
-//     // temp random player name
-//     let playerName = "A";
-//     for (let i = 0; i < 10; i++) {
-//         playerName += Math.round(Math.random() * 10);
-//     }
-//     return playerName;
-// };
+// Start client
+window.dispatchEvent(new Event("resize"));
 
-if (getUUID() !== false) {
-    console.log("got UUID!");
+output(getUUID());
+if (getUUID()) {
+    // console.log("got UUID!", getUUID());
     // try to rejoin
     rejoinGame();
 } else {
@@ -311,6 +340,12 @@ export {
     debris,
     obstacles,
     ships,
+    players,
     clientPlayer,
     gameOver,
+    voteAllHere,
+    imReady,
+    connectToServer,
+    joinGame,
+    // getLeaderboard,
 };

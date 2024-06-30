@@ -7,6 +7,7 @@ import {
     obstacles,
     ships,
     gameOver,
+    players,
 } from "./main.js";
 import {
     setAlpha,
@@ -24,6 +25,17 @@ console.log("canvas:", canvas);
 const ctx = context;
 const asteroidImage = new Image();
 asteroidImage.src = "./images/asteroid3.png";
+const scoreDisplay = document.getElementById("score-box");
+
+const padNumber = (num, size) => {
+    let numString = num.toString();
+    while (numString.length < size) numString = "0" + numString;
+    return numString;
+};
+
+const setClientScore = (score) => {
+    scoreDisplay.innerHTML = padNumber(score, 3);
+};
 
 const getCoordByPct = (pct) => {
     return pct * canvas.width * 0.01;
@@ -154,12 +166,12 @@ const drawShip = (ship) => {
         ctx.drawImage(ship.image, -radius, -radius, radius * 2, radius * 2);
     } else {
         // Circle
-        ctx.beginPath();
-        ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-        ctx.closePath();
-        ctx.strokeStyle = ship.color;
-        ctx.lineWidth = 1;
-        ctx.stroke();
+        // ctx.beginPath();
+        // ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+        // ctx.closePath();
+        // ctx.strokeStyle = ship.color;
+        // ctx.lineWidth = 1;
+        // ctx.stroke();
         // SHip
         ctx.beginPath();
         ctx.moveTo(radius, 0);
@@ -174,7 +186,7 @@ const drawShip = (ship) => {
         ctx.moveTo(-radius, -radius * 0.3);
         ctx.beginPath();
         ctx.lineTo(-radius, radius * 0.3);
-        ctx.lineTo(-radius * 1.3, 0);
+        ctx.lineTo(-radius * 1.5, 0);
         ctx.lineTo(-radius, -radius * 0.3);
         ctx.fillStyle = "yellow";
         ctx.fill();
@@ -225,6 +237,10 @@ const drawOnce = () => {
     for (const m of missiles) {
         drawMissile(m);
     }
+
+    if (gameOver) {
+        drawNames();
+    }
 };
 
 function clearCanvas() {
@@ -249,6 +265,22 @@ function clearCanvas() {
     context.fillStyle = gradient;
     context.fillRect(0, 0, canvas.width, canvas.height);
 }
+
+const drawNames = () => {
+    ctx.font = "bold 12px sans-serif";
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    for (const p of players) {
+        const x = getCoordByPct(p.ship.x);
+        const y = getCoordByPct(p.ship.y) - getCoordByPct(p.ship.radius);
+        // Draw Name
+        ctx.strokeText(p.name, x, y);
+        ctx.fillText(p.name, x, y);
+    }
+};
 
 const drawLoop = (timeStamp) => {
     if (!startTime) {
@@ -278,6 +310,13 @@ const resizeCanvas = () => {
     const size = Math.min(window.innerWidth, window.innerHeight);
     canvas.width = size;
     canvas.height = size - 4;
+    if (window.innerWidth > window.innerHeight) {
+        document.body.classList.add("layout-wide");
+        document.body.classList.remove("layout-tall");
+    } else {
+        document.body.classList.add("layout-tall");
+        document.body.classList.remove("layout-wide");
+    }
 };
 
 // Timer
@@ -288,11 +327,6 @@ const showTime = (seconds) => {
     document.getElementById("timer-box").innerHTML = timerText;
 };
 
-const padNumber = (num, size) => {
-    let numString = num.toString();
-    while (numString.length < size) numString = "0" + numString;
-    return numString;
-};
 
 let startTime = null;
 
@@ -301,9 +335,11 @@ export {
     drawMissile,
     drawRectangle,
     drawShip,
+    drawNames,
     clearCanvas,
     resizeCanvas,
     drawOnce,
     showTime,
     startDrawLoop,
+    setClientScore
 };

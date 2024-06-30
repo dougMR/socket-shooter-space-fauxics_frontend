@@ -14,6 +14,7 @@ const clearUUID = () => {
 const getUUID = () => {
     // Do we have a recent session?
     let uuid = localStorage.getItem("UUID");
+    console.log("getUUID()",uuid)
     if (uuid) {
         return uuid;
     }

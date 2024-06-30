@@ -10,32 +10,37 @@
             href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap"
             rel="stylesheet"
         />
-       <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="style.css" />
     </head>
     <body>
-        <!-- game test -->
-        <div id="start-screen">
-            <p>arrowkeys or wasd
-                <br />spacebar
-            </p>
-            <p>click to start</p>
+        <div id="game-holder">
+            <!-- game test -->
+            <div id="start-screen" class="hidden">
+                <p>arrowkeys or wasd <br />spacebar</p>
+                <p style="font-size: 0.8em;">click/tap here if you understand the controls</p>
+            </div>
+            <div id="start-options"  class="hidden"><label for="ready"><input type="checkbox" name="ready" id="ready"> I'm Ready</label> 
+                <br><label for="all-here"><input type="checkbox" name="all-here" id="all-here"> Everyone's Here</label>
+                <p>when all are here and ready, game will start</p>
+            </div>
+            <canvas id="game-canvas" width="100" height="100"></canvas>
+            <p id="score-box" class="text-box">00</p>
+            <p id="timer-box" class="text-box">00</p>
+            <div id="name-prompt" >
+                <label for="name">Create a player name.</label>
+                <input type="text" name="player-name" id="player-name">
+                <button class="ok">JOIN</button>
+            </div>
+            <div id="leaderboard" class="hidden"></div>
+            <div id="all-time-leaderbaord" class="hidden"></div>
+            <button id="again-button" class="hidden">AGAIN</button>
         </div>
-        <canvas id="game-canvas" width="100" height="100"></canvas>
-        <p id="score-box" class="text-box">00</p>
-        <p id="timer-box" class="text-box">00</p>
-        <div id="dev-tools"><button id="show-players">SHOW PLAYERS</button></div>
+        <div id="dev-tools">
+            <button id="show-players">SHOW PLAYERS</button>
+            <button id="show-ships">SHOW SHIPS</button>
+            <div id="output"></div>
+        </div>
         <script src="./socket.io/socket.io.js"></script>
         <script type="module" src="main.js"></script>
-
-        <!-- diagram view -->
-        <!-- <div id="a-1" class="point start a"></div>
-    <div id="a-2" class="point end a"></div>
-    <div id="b-1" class="point start b"></div>
-    <div id="b-2" class="point end b"></div>
-    <div id="intersect" class="point intersect"></div>
-    <div class="line" id="a"></div>
-    <div class="line" id="b"></div>
-    <script type="module" src="diagram.js"></script> -->
-        <!-- <script type="module" src="draw-circle-sweep.js"></script> -->
     </body>
 </html>
