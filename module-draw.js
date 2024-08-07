@@ -104,6 +104,7 @@ const drawMissile = (missile) => {
         ctx.rotate(-degreesToRadians(missile.facing));
         ctx.translate(-x, -y);
     } else {
+        const alphaIncr = 1 / missile.xyHistory.length;
         for (let i = 0; i < missile.xyHistory.length; i++) {
             // Draw Circle
             const x = getCoordByPct(missile.xyHistory[i].x);
@@ -112,7 +113,7 @@ const drawMissile = (missile) => {
 
             ctx.arc(x, y, radius - radius * (0.025 * i), 0, 2 * Math.PI);
 
-            ctx.fillStyle = setAlpha(missile.color, 1 - i * 0.1);
+            ctx.fillStyle = setAlpha(missile.color, 1 - i * alphaIncr);
             ctx.fill();
         }
     }

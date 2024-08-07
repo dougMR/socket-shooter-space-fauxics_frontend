@@ -81,6 +81,7 @@ const soundStrings = {};
 registerSound("laserSound", "./audio/laser.mp3");
 registerSound("explodeSound", "./audio/explode.mp3");
 registerSound("themeMusic", "./audio/muvibeat10_130bpm-14340mono.mp3");
+registerSound("chirp-select","./audio/chirp-button.mp3")
 soundStrings["themeMusic"].loop = true;
 
 export { playSoundByNameString, stopSoundByNameString, registerSound };

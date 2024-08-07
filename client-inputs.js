@@ -1,13 +1,17 @@
 import { imReady, voteAllHere } from "./main.js";
+import { playSoundByNameString } from "./module-sound.js";
+import(playSoundByNameString)
 // import { voteAllHere } from "./main.js";
 const readyCheckBox = document.getElementById("ready");
 const allHereCheckbox = document.getElementById("all-here");
 
 readyCheckBox.addEventListener("change", (event) => {
+    playSoundByNameString("chirp-select");
     imReady(event.target.checked);
 });
 
 allHereCheckbox.addEventListener("change", (event) => {
+    playSoundByNameString("chirp-select")
     voteAllHere(event.target.checked);
 });
 

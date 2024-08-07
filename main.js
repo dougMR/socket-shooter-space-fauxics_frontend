@@ -279,6 +279,7 @@ const startGame = (event) => {
     document.getElementById("start-screen").classList.add("hidden");
     document.getElementById("start-options").classList.add("hidden");
     startDrawLoop();
+    playSoundByNameString("themeMusic");
 };
 
 // LISTENERS
