@@ -17,6 +17,7 @@ import {
 import {
     playSoundByNameString,
     stopSoundByNameString,
+    playSoundLoopByNameString,
 } from "./module-sound.js";
 import { getUUID, setUUID, clearUUID } from "./module-uuid.js";
 import "./dev-tools.js";
@@ -86,9 +87,11 @@ for (const key of keysToAdd) {
 
 const accelerate = (amount) => {
     socket.emit("accelerate_ship", clientPlayer.id, amount);
+    playSoundLoopByNameString("thrust");
 };
 const stopThrust = () => {
     socket.emit("stop_ship_thrust", clientPlayer.id);
+    stopSoundByNameString("thrust");
 };
 
 const shoot = () => {
@@ -279,7 +282,8 @@ const startGame = (event) => {
     document.getElementById("start-screen").classList.add("hidden");
     document.getElementById("start-options").classList.add("hidden");
     startDrawLoop();
-    playSoundByNameString("themeMusic");
+    stopSoundByNameString("themeMusic");
+    playSoundLoopByNameString("themeMusic");
 };
 
 // LISTENERS

@@ -1,15 +1,21 @@
-console.log('module-sound.js');
+console.log("module-sound.js");
 /*
 
     GAME SOUNDS
 
 */
-
-const playSoundByNameString = (soundString) => {
-    // handle sound normally
-    playSound(soundStrings[soundString]);
+const playSoundLoopByNameString = (soundString) => {
+    const audioEl = soundStrings[soundString];
+    if (audioEl.paused) {
+        audioEl.play();
+        audioEl.loop = true;
+    }
 };
 
+const playSoundByNameString = (soundString, loop) => {
+    // handle sound normally
+    playSound(soundStrings[soundString], loop);
+};
 
 const dupeSound = (audioEl) => {
     // duplicate the audio element
@@ -80,8 +86,17 @@ const soundStrings = {};
 
 registerSound("laserSound", "./audio/laser.mp3");
 registerSound("explodeSound", "./audio/explode.mp3");
+registerSound("explodeMid", "./audio/explodeMid.mp3");
+registerSound("explodeBoom", "./audio/explodeDeep.mp3");
+registerSound("explode8bit", "./audio/explode8bit.mp3");
 registerSound("themeMusic", "./audio/muvibeat10_130bpm-14340mono.mp3");
-registerSound("chirp-select","./audio/chirp-button.mp3")
+registerSound("chirp-select", "./audio/chirp-button.mp3");
+registerSound("thrust", "./audio/thrust.mp3");
 soundStrings["themeMusic"].loop = true;
 
-export { playSoundByNameString, stopSoundByNameString, registerSound };
+export {
+    playSoundByNameString,
+    stopSoundByNameString,
+    registerSound,
+    playSoundLoopByNameString,
+};
