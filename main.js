@@ -29,6 +29,7 @@ import {
     // displayAllTimeLeaders,
 } from "./module-leaderboard.js";
 import { hideNamePrompt, showNamePrompt } from "./module-name-prompt.js";
+import { startThrustSound,stopThrustSound } from "./module-web-audio-api.js";
 
 // Set up keys for control
 
@@ -86,23 +87,27 @@ for (const key of keysToAdd) {
 //////////////////////
 
 const accelerate = (amount) => {
+    if(!clientPlayer.ship.alive) return;
     socket.emit("accelerate_ship", clientPlayer.id, amount);
-    playSoundLoopByNameString("thrust");
+    // playSoundLoopByNameString("thrust");
+    startThrustSound();
 };
 const stopThrust = () => {
     socket.emit("stop_ship_thrust", clientPlayer.id);
-    stopSoundByNameString("thrust");
+    // stopSoundByNameString("thrust");
+    stopThrustSound();
 };
 
 const shoot = () => {
     // console.log("shoot. gameOver: ", gameOver);
-    // sound
+    if(!clientPlayer.ship.alive) return;
     playSoundByNameString("laserSound");
     socket.emit("broadcast_sound", "laserSound");
     socket.emit("ship_shoot", clientPlayer.id);
 };
 
 const turn = (degChange) => {
+    if(!clientPlayer.ship.alive) return;
     socket.emit("rotate_ship", clientPlayer.id, degChange);
 };
 
@@ -269,6 +274,7 @@ const imReady = (yesOrNo) => {
 
 const closeStartScreen = () => {
     console.log("close start-screen.");
+    playSoundByNameString("click");
     document.getElementById("start-screen").classList.add("hidden");
     document.getElementById("start-options").classList.remove("hidden");
     document.getElementById("ready").checked = false;

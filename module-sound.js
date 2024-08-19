@@ -91,7 +91,8 @@ registerSound("explodeBoom", "./audio/explodeDeep.mp3");
 registerSound("explode8bit", "./audio/explode8bit.mp3");
 registerSound("themeMusic", "./audio/muvibeat10_130bpm-14340mono.mp3");
 registerSound("chirp-select", "./audio/chirp-button.mp3");
-registerSound("thrust", "./audio/thrust.mp3");
+registerSound("thrust", "./audio/thrust.ogg");
+registerSound("click", "./audio/click.mp3");
 soundStrings["themeMusic"].loop = true;
 
 export {
