@@ -29,7 +29,7 @@ import {
     // displayAllTimeLeaders,
 } from "./module-leaderboard.js";
 import { hideNamePrompt, showNamePrompt } from "./module-name-prompt.js";
-import { startThrustSound,stopThrustSound } from "./module-web-audio-api.js";
+import { startThrustSound, stopThrustSound } from "./module-web-audio-api.js";
 
 // Set up keys for control
 
@@ -87,7 +87,7 @@ for (const key of keysToAdd) {
 //////////////////////
 
 const accelerate = (amount) => {
-    if(!clientPlayer.ship.alive) return;
+    if (!clientPlayer.ship.alive) return;
     socket.emit("accelerate_ship", clientPlayer.id, amount);
     // playSoundLoopByNameString("thrust");
     startThrustSound();
@@ -100,14 +100,15 @@ const stopThrust = () => {
 
 const shoot = () => {
     // console.log("shoot. gameOver: ", gameOver);
-    if(!clientPlayer.ship.alive) return;
+    console.log("shoot", clientPlayer.ship.alive);
+    if (!clientPlayer.ship.alive) return;
     playSoundByNameString("laserSound");
     socket.emit("broadcast_sound", "laserSound");
     socket.emit("ship_shoot", clientPlayer.id);
 };
 
 const turn = (degChange) => {
-    if(!clientPlayer.ship.alive) return;
+    if (!clientPlayer.ship.alive) return;
     socket.emit("rotate_ship", clientPlayer.id, degChange);
 };
 

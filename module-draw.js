@@ -24,7 +24,7 @@ console.log("canvas:", canvas);
 
 const ctx = context;
 const asteroidImage = new Image();
-asteroidImage.src = "./images/asteroid3.png";
+asteroidImage.src = "./images/asteroid-contrast.png"; //"./images/asteroid3.png";
 const scoreDisplay = document.getElementById("score-box");
 
 const padNumber = (num, size) => {
@@ -261,6 +261,8 @@ function clearCanvas() {
     gradient.addColorStop(0, "#221133");
     // gradient.addColorStop(0.5, "white");
     gradient.addColorStop(0.7, "#110022");
+    // black space
+    gradient.addColorStop(1, "#000007");
 
     // Set the fill style and draw a rectangle
     context.fillStyle = gradient;
