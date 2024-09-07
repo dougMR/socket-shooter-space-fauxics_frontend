@@ -24,7 +24,7 @@ console.log("canvas:", canvas);
 
 const ctx = context;
 const asteroidImage = new Image();
-asteroidImage.src = "./images/asteroid-contrast.png"; //"./images/asteroid3.png";
+asteroidImage.src = "./images/asteroid3-contrast.png"; //"./images/asteroid-contrast.png"; //
 const scoreDisplay = document.getElementById("score-box");
 
 const padNumber = (num, size) => {
@@ -109,10 +109,25 @@ const drawMissile = (missile) => {
             // Draw Circle
             const x = getCoordByPct(missile.xyHistory[i].x);
             const y = getCoordByPct(missile.xyHistory[i].y);
+            const rad = missile.xyHistory[i].radians;
             ctx.beginPath();
 
-            ctx.arc(x, y, radius - radius * (0.025 * i), 0, 2 * Math.PI);
+            // ctx.arc(
+            //     x,
+            //     y,
+            //     radius * 2 - radius * 2 * (0.025 * i),
+            //     0,
+            //     2 * Math.PI
+            // );
+            const r = radius - radius * (0.025 * i)
+            ctx.ellipse(x, y, r*6, r*1.5, rad, 0, 2 * Math.PI);
+            ctx.closePath();
+            ctx.fillStyle = setAlpha(missile.color, 0.5 - i * alphaIncr);
+            ctx.fill();
 
+            ctx.beginPath();
+            // ctx.arc(x, y, radius - radius * (0.025 * i), 0, 2 * Math.PI);
+            ctx.ellipse(x, y, r*3, r, rad, 0, 2 * Math.PI);
             ctx.fillStyle = setAlpha(missile.color, 1 - i * alphaIncr);
             ctx.fill();
         }
@@ -262,7 +277,7 @@ function clearCanvas() {
     // gradient.addColorStop(0.5, "white");
     gradient.addColorStop(0.7, "#110022");
     // black space
-    gradient.addColorStop(1, "#000007");
+    // gradient.addColorStop(1, "#0f0027");
 
     // Set the fill style and draw a rectangle
     context.fillStyle = gradient;
@@ -330,7 +345,6 @@ const showTime = (seconds) => {
     document.getElementById("timer-box").innerHTML = timerText;
 };
 
-
 let startTime = null;
 
 export {
@@ -344,5 +358,5 @@ export {
     drawOnce,
     showTime,
     startDrawLoop,
-    setClientScore
+    setClientScore,
 };

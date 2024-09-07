@@ -37,34 +37,34 @@ const keysToAdd = [
     {
         name: ["ArrowLeft", "A", "a"],
         myFunction: () => {
-            if (clientPlayer.ship) turn(-5);
+            if (clientPlayer.ship.alive) turn(-5);
         },
         frequency: 50,
     },
     {
         name: ["ArrowRight", "D", "d"],
         myFunction: () => {
-            if (clientPlayer.ship) turn(5);
+            if (clientPlayer.ship.alive) turn(5);
         },
         frequency: 50,
     },
     {
         name: ["ArrowUp", "w", "W"],
         myFunction: () => {
-            if (clientPlayer.ship) accelerate(0.05);
+            if (clientPlayer.ship.alive) accelerate(0.05);
         },
         upFunction: () => {
-            if (clientPlayer.ship) stopThrust();
+            if (clientPlayer.ship.alive) stopThrust();
         },
         frequency: 30,
     },
     {
         name: ["ArrowDown", "s", "S"],
         myFunction: () => {
-            if (clientPlayer.ship) accelerate(-0.025);
+            if (clientPlayer.ship.alive) accelerate(-0.025);
         },
         upFunction: () => {
-            if (clientPlayer.ship) stopThrust();
+            if (clientPlayer.ship.alive) stopThrust();
         },
         frequency: 30,
     },
