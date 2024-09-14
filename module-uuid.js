@@ -1,7 +1,6 @@
 // UUID Stuff
 const setUUID = () => {
     const UUID = crypto.randomUUID();
-    // console.log("setUUID()", UUID);
     localStorage.setItem("UUID", UUID);
     return UUID;
 };
@@ -14,7 +13,7 @@ const clearUUID = () => {
 const getUUID = () => {
     // Do we have a recent session?
     let uuid = localStorage.getItem("UUID");
-    console.log("getUUID()",uuid)
+    console.log("getUUID() found:",uuid)
     if (uuid) {
         return uuid;
     }

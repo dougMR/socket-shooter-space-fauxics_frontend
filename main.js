@@ -155,14 +155,11 @@ const rejoinGame = () => {
     socket.emit("rejoin_game", uuid, (response) => {
         console.log("rejoin_game response:", response);
         if (response.success) {
-            // console.log("rejoined as ", response.name);
             // we are reconnected as previous player
             alert("you have rejoined as " + response.name);
-            // output("rejoined as "+response.name);
-            // justJoined();
-
             document.getElementById("start-screen").classList.remove("hidden");
         } else {
+            // rejoin didn't work
             clearUUID();
             showNamePrompt();
         }
@@ -237,6 +234,8 @@ const connectToServer = () => {
             obstacles.splice(0, Infinity, ...data.obstacles);
             ships.splice(0, Infinity, ...data.ships);
             setFrontendPlayers(data.players);
+            // show fps
+            document.getElementById("fps").textContent = data.fps+'fps';
         });
         socket.on("startGame", () => {
             startGame();
@@ -322,7 +321,14 @@ document
         closeStartScreen();
     });
 
-// POINT OF ENTRY
+//////////////////////////////////////
+//////////////////////////////////////
+////
+////        POINT OF ENTRY
+////
+//////////////////////////////////////
+//////////////////////////////////////
+
 const asteroids = [];
 const missiles = [];
 const debris = [];
@@ -339,7 +345,6 @@ window.dispatchEvent(new Event("resize"));
 
 output(getUUID());
 if (getUUID()) {
-    // console.log("got UUID!", getUUID());
     // try to rejoin
     rejoinGame();
 } else {

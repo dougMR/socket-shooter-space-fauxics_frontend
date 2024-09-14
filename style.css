@@ -199,3 +199,12 @@ body {
         border-color: white;
     }
 }
+
+#fps {
+    position: fixed;
+    bottom:0;
+    right:0;
+    color: cornflowerblue;
+    font-family: monospace;
+    font-size: 1.5rem;
+}

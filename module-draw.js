@@ -8,6 +8,7 @@ import {
     ships,
     gameOver,
     players,
+    clientPlayer,
 } from "./main.js";
 import {
     setAlpha,
@@ -24,7 +25,14 @@ console.log("canvas:", canvas);
 
 const ctx = context;
 const asteroidImage = new Image();
-asteroidImage.src = "./images/asteroid3-contrast.png"; //"./images/asteroid-contrast.png"; //
+asteroidImage.src =
+    Math.random() < 0.5
+        ? "./images/asteroid-contrast.png"
+        : "./images/asteroid3-contrast.png"; //
+const shipImage = new Image();
+shipImage.src = "./images/spaceship.png";
+const shipImage2 = new Image();
+shipImage2.src = "./images/spaceship2.png"
 const scoreDisplay = document.getElementById("score-box");
 
 const padNumber = (num, size) => {
@@ -119,15 +127,15 @@ const drawMissile = (missile) => {
             //     0,
             //     2 * Math.PI
             // );
-            const r = radius - radius * (0.025 * i)
-            ctx.ellipse(x, y, r*6, r*1.5, rad, 0, 2 * Math.PI);
+            const r = radius - radius * (0.025 * i);
+            ctx.ellipse(x, y, r * 6, r * 1.5, rad, 0, 2 * Math.PI);
             ctx.closePath();
             ctx.fillStyle = setAlpha(missile.color, 0.5 - i * alphaIncr);
             ctx.fill();
 
             ctx.beginPath();
             // ctx.arc(x, y, radius - radius * (0.025 * i), 0, 2 * Math.PI);
-            ctx.ellipse(x, y, r*3, r, rad, 0, 2 * Math.PI);
+            ctx.ellipse(x, y, r * 3, r, rad, 0, 2 * Math.PI);
             ctx.fillStyle = setAlpha(missile.color, 1 - i * alphaIncr);
             ctx.fill();
         }
@@ -178,25 +186,22 @@ const drawShip = (ship) => {
     ctx.translate(x, y);
     ctx.rotate(degreesToRadians(ship.facing));
     //
-    if (ship.image !== null) {
-        ctx.drawImage(ship.image, -radius, -radius, radius * 2, radius * 2);
+    // ship.image = shipImage;
+    // if (ship.image !== null) {
+    if (ship.playerId === clientPlayer.id) {
+        ctx.drawImage(shipImage, -radius, -radius, radius * 2, radius * 2);
     } else {
-        // Circle
-        // ctx.beginPath();
-        // ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-        // ctx.closePath();
-        // ctx.strokeStyle = ship.color;
-        // ctx.lineWidth = 1;
-        // ctx.stroke();
+        ctx.drawImage(shipImage2, -radius, -radius, radius * 2, radius * 2);
+
         // SHip
-        ctx.beginPath();
-        ctx.moveTo(radius, 0);
-        ctx.lineTo(-radius, 0.7 * radius);
-        ctx.lineTo(-radius, -0.7 * radius);
-        ctx.lineTo(radius, 0);
-        ctx.closePath();
-        ctx.fillStyle = ship.color;
-        ctx.fill();
+        // ctx.beginPath();
+        // ctx.moveTo(radius, 0);
+        // ctx.lineTo(-radius, 0.7 * radius);
+        // ctx.lineTo(-radius, -0.7 * radius);
+        // ctx.lineTo(radius, 0);
+        // ctx.closePath();
+        // ctx.fillStyle = ship.color;
+        // ctx.fill();
     }
     if (ship.thrusting) {
         ctx.moveTo(-radius, -radius * 0.3);
