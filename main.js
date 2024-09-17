@@ -30,6 +30,7 @@ import {
 } from "./module-leaderboard.js";
 import { hideNamePrompt, showNamePrompt } from "./module-name-prompt.js";
 import { startThrustSound, stopThrustSound } from "./module-web-audio-api.js";
+import { popupMessage } from "./module-popup-message.js";
 
 // Set up keys for control
 
@@ -156,7 +157,13 @@ const rejoinGame = () => {
         console.log("rejoin_game response:", response);
         if (response.success) {
             // we are reconnected as previous player
-            alert("you have rejoined as " + response.name);
+            // alert("you have rejoined as " + response.name);
+            // if we call alert() in here, client re-disconnects if not click OK immediately
+            // setTimeout(() => {
+            // alert("you have rejoined as " + response.name)
+            // }, 5000);
+
+            popupMessage("you have rejoined as " + response.name);
             document.getElementById("start-screen").classList.remove("hidden");
         } else {
             // rejoin didn't work
@@ -235,7 +242,7 @@ const connectToServer = () => {
             ships.splice(0, Infinity, ...data.ships);
             setFrontendPlayers(data.players);
             // show fps
-            document.getElementById("fps").textContent = data.fps+'fps';
+            document.getElementById("fps").textContent = data.fps + "fps";
         });
         socket.on("startGame", () => {
             startGame();
