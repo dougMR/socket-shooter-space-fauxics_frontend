@@ -16,7 +16,8 @@ import {
     darkenColor,
     mixHexColors,
 } from "./libs/colorUtilities.js";
-import { Keys } from "./module-keys.js";
+import { checkKeys } from "./module-keys.js";
+// import { Keys } from "./module-keys.js";
 
 const canvas = document.getElementById("game-canvas");
 const context = canvas.getContext("2d");
@@ -32,7 +33,7 @@ asteroidImage.src =
 const shipImage = new Image();
 shipImage.src = "./images/spaceship.png";
 const shipImage2 = new Image();
-shipImage2.src = "./images/spaceship2.png"
+shipImage2.src = "./images/spaceship2.png";
 const scoreDisplay = document.getElementById("score-box");
 
 const padNumber = (num, size) => {
@@ -42,6 +43,7 @@ const padNumber = (num, size) => {
 };
 
 const setClientScore = (score) => {
+    if (!score) return;
     scoreDisplay.innerHTML = padNumber(score, 3);
 };
 
@@ -188,7 +190,7 @@ const drawShip = (ship) => {
     //
     // ship.image = shipImage;
     // if (ship.image !== null) {
-    if (ship.playerId === clientPlayer.id) {
+    if (ship.playerId === clientPlayer?.id) {
         ctx.drawImage(shipImage, -radius, -radius, radius * 2, radius * 2);
     } else {
         ctx.drawImage(shipImage2, -radius, -radius, radius * 2, radius * 2);
@@ -204,11 +206,11 @@ const drawShip = (ship) => {
         // ctx.fill();
     }
     if (ship.thrusting) {
-        ctx.moveTo(-radius, -radius * 0.3);
+        ctx.moveTo(-radius, -radius * 0.4);
         ctx.beginPath();
-        ctx.lineTo(-radius, radius * 0.3);
-        ctx.lineTo(-radius * 1.5, 0);
-        ctx.lineTo(-radius, -radius * 0.3);
+        ctx.lineTo(-radius, radius * 0.4);
+        ctx.lineTo(-radius * 2, 0);
+        ctx.lineTo(-radius, -radius * 0.4);
         ctx.fillStyle = "yellow";
         ctx.fill();
     }
@@ -310,7 +312,7 @@ const drawLoop = (timeStamp) => {
         startTime = timeStamp;
     }
 
-    Keys.checkKeys();
+    checkKeys();
 
     clearCanvas();
 

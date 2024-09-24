@@ -1,15 +1,10 @@
 console.log("main.js");
 
 import serverURL from "./server-url.js";
-import { Keys } from "./module-keys.js";
+// import  "./module-keys.js";
 import {
-    drawCircle,
-    drawMissile,
-    drawRectangle,
     drawShip,
     drawNames,
-    drawOnce,
-    resizeCanvas,
     showTime,
     startDrawLoop,
     setClientScore,
@@ -19,98 +14,32 @@ import {
     stopSoundByNameString,
     playSoundLoopByNameString,
 } from "./module-sound.js";
+import { stopThrustSound } from "./module-web-audio-api.js";
 import { getUUID, setUUID, clearUUID } from "./module-uuid.js";
 import "./dev-tools.js";
 import { output } from "./module-output.js";
-import "./client-inputs.js";
+import { showPlayersListOnStartScreen } from "./client-inputs.js";
 import {
     hideLeaders,
     displayLeaders,
     // displayAllTimeLeaders,
 } from "./module-leaderboard.js";
 import { hideNamePrompt, showNamePrompt } from "./module-name-prompt.js";
-import { startThrustSound, stopThrustSound } from "./module-web-audio-api.js";
+
 import { popupMessage } from "./module-popup-message.js";
+import { view } from "./view.js";
 
-// Set up keys for control
-
-const keysToAdd = [
-    {
-        name: ["ArrowLeft", "A", "a"],
-        myFunction: () => {
-            if (clientPlayer.ship.alive) turn(-5);
-        },
-        frequency: 50,
-    },
-    {
-        name: ["ArrowRight", "D", "d"],
-        myFunction: () => {
-            if (clientPlayer.ship.alive) turn(5);
-        },
-        frequency: 50,
-    },
-    {
-        name: ["ArrowUp", "w", "W"],
-        myFunction: () => {
-            if (clientPlayer.ship.alive) accelerate(0.05);
-        },
-        upFunction: () => {
-            if (clientPlayer.ship.alive) stopThrust();
-        },
-        frequency: 30,
-    },
-    {
-        name: ["ArrowDown", "s", "S"],
-        myFunction: () => {
-            if (clientPlayer.ship.alive) accelerate(-0.025);
-        },
-        upFunction: () => {
-            if (clientPlayer.ship.alive) stopThrust();
-        },
-        frequency: 30,
-    },
-    {
-        name: ["  ", " ", "Space"],
-        myFunction: () => {
-            if (clientPlayer.ship && !gameOver) shoot();
-        },
-        frequency: 500,
-    },
-];
-
-for (const key of keysToAdd) {
-    key.lastTimePressed = 0;
-    Keys.addKey(key);
-}
-
-// Fly Ship
-//
-//////////////////////
-
-const accelerate = (amount) => {
-    if (!clientPlayer.ship.alive) return;
-    socket.emit("accelerate_ship", clientPlayer.id, amount);
-    // playSoundLoopByNameString("thrust");
-    startThrustSound();
-};
-const stopThrust = () => {
-    socket.emit("stop_ship_thrust", clientPlayer.id);
-    // stopSoundByNameString("thrust");
-    stopThrustSound();
-};
-
-const shoot = () => {
-    // console.log("shoot. gameOver: ", gameOver);
-    console.log("shoot", clientPlayer.ship.alive);
-    if (!clientPlayer.ship.alive) return;
-    playSoundByNameString("laserSound");
-    socket.emit("broadcast_sound", "laserSound");
-    socket.emit("ship_shoot", clientPlayer.id);
-};
-
-const turn = (degChange) => {
-    if (!clientPlayer.ship.alive) return;
-    socket.emit("rotate_ship", clientPlayer.id, degChange);
+const emit = (endpointName, argument, includeClientPlayerId = true) => {
+    // only works with server calls with one parameter - specified, or clientPlayer.id
+    if (argument) {
+        if (!includeClientPlayerId) {
+            socket.emit(endpointName, argument);
+        } else {
+            socket.emit(endpointName, clientPlayer.id, argument);
+        }
+    } else {
+        socket.emit(endpointName, clientPlayer.id);
+    }
 };
 
 //
@@ -137,12 +66,14 @@ const joinGame = (playerName) => {
             if (serverResponse.error) {
                 // Show Name Prompt
                 alert(serverResponse.error);
+                popupMessage(serverResponse.error);
                 showNamePrompt();
             } else {
                 hideNamePrompt();
-                document
-                    .getElementById("start-screen")
-                    .classList.remove("hidden");
+                view.show(document.getElementById("controls-screen"));
+                // document
+                //     .getElementById("controls-screen")
+                //     .classList.remove("hidden");
             }
         }
     );
@@ -159,12 +90,9 @@ const rejoinGame = () => {
             // we are reconnected as previous player
             // alert("you have rejoined as " + response.name);
             // if we call alert() in here, client re-disconnects if not click OK immediately
-            // setTimeout(() => {
-            // alert("you have rejoined as " + response.name)
-            // }, 5000);
-
             popupMessage("you have rejoined as " + response.name);
-            document.getElementById("start-screen").classList.remove("hidden");
+            view.show(document.getElementById("controls-screen"));
+            // document.getElementById("controls-screen").classList.remove("hidden");
         } else {
             // rejoin didn't work
             clearUUID();
@@ -173,9 +101,9 @@ const rejoinGame = () => {
     });
 };
 
-const voteAllHere = (yesOrNo) => {
-    socket.emit("vote_all_here", yesOrNo);
-};
+// const voteAllHere = (yesOrNo) => {
+//     socket.emit("vote_all_here", yesOrNo);
+// };
 
 // const getLeaderboard = (callback) => {
 //     socket.emit("get_leaderboard", callback);
@@ -186,6 +114,15 @@ const voteAllHere = (yesOrNo) => {
 //     player = player ? player : clientPlayer;
 //     socket.emit("submit_score", player);
 // };
+
+// const getWaitingPlayers = () => {
+//     console.log('getWaitingPlayers()...')
+//     socket.emit("get_waiting_players", (response)=>{
+//         console.log('getWaitingPlayers:',response);
+//         waitingPlayers = response;
+//     });
+// }
+
 // Socket Stuff
 //
 ////////////////////////
@@ -207,7 +144,8 @@ const connectToServer = () => {
             console.log("updatePlayers()");
             console.log("socket.id: ", socket.id);
             console.log("numPlayers: ", playersFromServer.length);
-            setFrontendPlayers(playersFromServer);
+            setFrontendPlayers(playersFromServer.players);
+            // waitingPlayers = playersFromServer.waitingPlayers;
             for (const player of players) {
                 drawShip(player.ship);
                 if (player.id === socket.id) {
@@ -217,13 +155,23 @@ const connectToServer = () => {
                         clientPlayer.name
                     );
                 }
-                // console.log("clientPlayer: ", clientPlayer);
             }
+            // for (const player of waitingPlayers) {
+            //     if (player.id === socket.id) {
+            //         clientPlayer = player;
+            //         console.log(
+            //             "     ----------------------- set clientPlayer",
+            //             clientPlayer.name
+            //         );
+            //     }
+            // }
             drawNames();
+            showPlayersListOnStartScreen();
         });
 
         // Sounds
         socket.on("playSound", (soundString) => {
+            console.log("playSound",soundString);
             playSoundByNameString(soundString);
         });
         socket.on("stopSound", (soundString) => {
@@ -251,9 +199,11 @@ const connectToServer = () => {
             console.log("\r\nendGame\r\n");
             gameOver = true;
             displayLeaders();
+            stopThrustSound();
             // submitScoreToLeaderboard();
             // displayAllTimeLeaders();
-            document.getElementById("again-button").classList.remove("hidden");
+            view.show(document.getElementById("again-button"));
+            // document.getElementById("again-button").classList.remove("hidden");
         });
     });
 };
@@ -267,10 +217,12 @@ const setFrontendPlayers = (newPlayers) => {
 
     let playersText = "";
     for (const p of players) {
-        playersText += `<br /><div style="color: ${p.ship.color};" >${p.name} ... ${p.score}</div>`;
+        playersText += `<br /><div style="color: ${p.ship.color};" >${p.name}${
+            p.onDeck ? "(waiting)" : ""
+        } ... ${p.score}</div>`;
         if (p.id === socket.id) clientPlayer = p;
     }
-    setClientScore(clientPlayer.score);
+    setClientScore(clientPlayer?.score);
 
     output(playersText, true);
 };
@@ -279,54 +231,16 @@ const imReady = (yesOrNo) => {
     socket.emit("player_ready", yesOrNo);
 };
 
-const closeStartScreen = () => {
-    console.log("close start-screen.");
-    playSoundByNameString("click");
-    document.getElementById("start-screen").classList.add("hidden");
-    document.getElementById("start-options").classList.remove("hidden");
-    document.getElementById("ready").checked = false;
-    document.getElementById("all-here").checked = false;
-};
-
 const startGame = (event) => {
     console.log("startGame()");
     hideLeaders();
     gameOver = false;
-    document.getElementById("start-screen").classList.add("hidden");
-    document.getElementById("start-options").classList.add("hidden");
+    view.hide(document.getElementById("controls-screen"));
+    view.hide(document.getElementById("start-options"));
     startDrawLoop();
     stopSoundByNameString("themeMusic");
     playSoundLoopByNameString("themeMusic");
 };
-
-// LISTENERS
-
-window.addEventListener("keydown", (event) => {
-    if (document.getElementById("name-prompt").classList.contains("hidden")) {
-        Keys.handleKeyDown(event);
-    }
-});
-window.addEventListener("keyup", (event) => {
-    if (document.getElementById("name-prompt").classList.contains("hidden")) {
-        Keys.handleKeyUp(event);
-    }
-});
-window.addEventListener("resize", function () {
-    console.log("resize");
-    resizeCanvas();
-    drawOnce();
-});
-document
-    .getElementById("start-screen")
-    .addEventListener("pointerdown", closeStartScreen);
-
-document
-    .getElementById("again-button")
-    .addEventListener("pointerdown", (event) => {
-        event.target.classList.add("hidden");
-        hideLeaders();
-        closeStartScreen();
-    });
 
 //////////////////////////////////////
 //////////////////////////////////////
@@ -343,6 +257,7 @@ const obstacles = [];
 const ships = [];
 
 let players = [];
+let waitingPlayers = [];
 let clientPlayer = null;
 let gameOver = true;
 let socket;
@@ -365,11 +280,13 @@ export {
     obstacles,
     ships,
     players,
+    waitingPlayers,
     clientPlayer,
     gameOver,
-    voteAllHere,
+    // voteAllHere,
     imReady,
     connectToServer,
     joinGame,
     // getLeaderboard,
+    emit,
 };

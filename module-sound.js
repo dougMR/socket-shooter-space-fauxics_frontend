@@ -5,6 +5,7 @@ console.log("module-sound.js");
 
 */
 const playSoundLoopByNameString = (soundString) => {
+    // console.log("playSoundByNameString",soundString);
     const audioEl = soundStrings[soundString];
     if (audioEl.paused) {
         audioEl.play();
@@ -32,6 +33,7 @@ const playSound = (audioEl, loop) => {
     // console.log('playSound()',audioEl);
     // play sound, or play copy, or create and play copy
     // and return a reference to the Audio element
+    // console.log("audioEl: ",audioEl);
     const key = audioEl.src;
     let triggeredSample = false;
     let soundUsed = null;

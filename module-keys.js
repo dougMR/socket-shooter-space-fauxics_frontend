@@ -1,4 +1,41 @@
-import{clientPlayer} from "./main.js"
+import {
+    clientPlayer,
+    emit,
+    gameOver
+} from "./main.js";
+import { view } from "./view.js";
+import { startThrustSound, stopThrustSound } from "./module-web-audio-api.js";
+import { playSoundByNameString } from "./module-sound.js";
+
+// Fly Ship
+//
+//////////////////////
+
+const accelerate = (amount) => {
+    if (!clientPlayer.ship.alive) return;
+    emit("accelerate_ship", amount);
+    // playSoundLoopByNameString("thrust");
+    startThrustSound();
+};
+const stopThrust = () => {
+    emit("stop_ship_thrust");
+    // stopSoundByNameString("thrust");
+    stopThrustSound();
+};
+
+const shoot = () => {
+    // console.log("shoot. gameOver: ", gameOver);
+    // console.log("shoot", clientPlayer.ship.alive);
+    if (!clientPlayer.ship.alive) return;
+    playSoundByNameString("laserSound");
+    emit("broadcast_sound", "laserSound");
+    emit("ship_shoot");
+};
+
+const turn = (degChange) => {
+    if (!clientPlayer.ship.alive) return;
+    emit("rotate_ship", degChange);
+};
 
 // KEYS
 let keyCheckInterval = null;
@@ -93,12 +130,75 @@ const stopKeyCheckInterval = () => {
     }
 };
 
-// ^ Move to Keys module
+// Set up keys for control
 
-export const Keys = {
-    // setKey,
-    addKey,
-    handleKeyDown,
-    handleKeyUp,
-    checkKeys,
-};
+const keysToAdd = [
+    {
+        name: ["ArrowLeft", "A", "a"],
+        myFunction: () => {
+            if (clientPlayer.ship.alive) turn(-5);
+        },
+        frequency: 50,
+    },
+    {
+        name: ["ArrowRight", "D", "d"],
+        myFunction: () => {
+            if (clientPlayer.ship.alive) turn(5);
+        },
+        frequency: 50,
+    },
+    {
+        name: ["ArrowUp", "w", "W"],
+        myFunction: () => {
+            if (clientPlayer.ship.alive) accelerate(0.05);
+        },
+        upFunction: () => {
+            if (clientPlayer.ship.alive) stopThrust();
+        },
+        frequency: 30,
+    },
+    {
+        name: ["ArrowDown", "s", "S"],
+        myFunction: () => {
+            if (clientPlayer.ship.alive) accelerate(-0.025);
+        },
+        upFunction: () => {
+            if (clientPlayer.ship.alive) stopThrust();
+        },
+        frequency: 30,
+    },
+    {
+        name: ["  ", " ", "Space"],
+        myFunction: () => {
+            if (clientPlayer.ship && !gameOver) shoot();
+        },
+        frequency: 500,
+    },
+];
+
+for (const key of keysToAdd) {
+    key.lastTimePressed = 0;
+    addKey(key);
+}
+
+// LISTENERS
+
+window.addEventListener("keydown", (event) => {
+    if (view.isHidden(document.getElementById("name-prompt"))) {
+        handleKeyDown(event);
+    }
+});
+window.addEventListener("keyup", (event) => {
+    if (view.isHidden(document.getElementById("name-prompt"))) {
+        handleKeyUp(event);
+    }
+});
+
+// export const Keys = {
+// setKey,
+// addKey,
+// handleKeyDown,
+// handleKeyUp,
+// checkKeys,
+// };
+export { checkKeys };
