@@ -14,7 +14,6 @@ namePrompt.querySelector(".ok").addEventListener("pointerdown", (event) => {
     if (playerName) {
         connectToServer();
         joinGame(playerName);
-        // hideNamePrompt();
     }
 });
 

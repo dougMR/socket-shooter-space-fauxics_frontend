@@ -3,12 +3,14 @@ import { degreesToRadians } from "./module-angles.js";
 import {
     asteroids,
     missiles,
+    mines,
     debris,
     obstacles,
     ships,
-    gameOver,
+    gameInProgress,
     players,
     clientPlayer,
+    shockwaves,
 } from "./main.js";
 import {
     setAlpha,
@@ -43,7 +45,7 @@ const padNumber = (num, size) => {
 };
 
 const setClientScore = (score) => {
-    if (!score) return;
+    if (isNaN(score)) return;
     scoreDisplay.innerHTML = padNumber(score, 3);
 };
 
@@ -144,6 +146,49 @@ const drawMissile = (missile) => {
     }
 };
 
+// Draw Mine
+const drawMine = (mine) => {
+    // console.log('drawMine',mine);
+    const radius = getCoordByPct(mine.radius);
+    const x = getCoordByPct(mine.x);
+    const y = getCoordByPct(mine.y);
+    ctx.translate(x, y);
+    if (mine.image !== null) {
+        // rotate, translate
+        ctx.rotate(degreesToRadians(mine.facing));
+        ctx.drawImage(mine.image, -radius, -radius, radius * 2, radius * 2);
+        // un-rotate, un-translate
+        ctx.rotate(-degreesToRadians(mine.facing));
+    } else {
+        // Draw Circle
+        const gradient = ctx.createRadialGradient(
+            -radius * 0.8,
+            -radius * 0.8,
+            radius * 0.1,
+            -radius * 0.8,
+            -radius * 0.8,
+            radius * 2
+        );
+        gradient.addColorStop(0, mine.color);
+        // gradient.addColorStop(0.5, "white");
+        gradient.addColorStop(0.9, darkenColor(mine.color, 80));
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // ctx.beginPath();
+        // ctx.arc(0, 0, radius*0.5, 0, 2 * Math.PI);
+        // ctx.closePath();
+        // ctx.lineWidth = 2;
+        // ctx.strokeStyle = "yellow"; //darkenColor(mine.color,50);
+        // ctx.stroke();
+    }
+    //  un-translate
+    ctx.translate(-x, -y);
+};
+
 // Draw Rectangle
 const drawRectangle = (rectangle) => {
     // const verts = rectangle_relativeVertices;
@@ -190,33 +235,59 @@ const drawShip = (ship) => {
     //
     // ship.image = shipImage;
     // if (ship.image !== null) {
-    if (ship.playerId === clientPlayer?.id) {
-        ctx.drawImage(shipImage, -radius, -radius, radius * 2, radius * 2);
-    } else {
-        ctx.drawImage(shipImage2, -radius, -radius, radius * 2, radius * 2);
+    // if (ship.playerId === clientPlayer?.id) {
+    //     ctx.drawImage(shipImage, -radius, -radius, radius * 2, radius * 2);
+    // } else {
+    //     ctx.drawImage(shipImage2, -radius, -radius, radius * 2, radius * 2);
 
-        // SHip
-        // ctx.beginPath();
-        // ctx.moveTo(radius, 0);
-        // ctx.lineTo(-radius, 0.7 * radius);
-        // ctx.lineTo(-radius, -0.7 * radius);
-        // ctx.lineTo(radius, 0);
-        // ctx.closePath();
-        // ctx.fillStyle = ship.color;
-        // ctx.fill();
-    }
+    // SHip
+    ctx.beginPath();
+    ctx.moveTo(radius, 0);
+    ctx.lineTo(-radius, 0.7 * radius);
+    ctx.lineTo(-radius, -0.7 * radius);
+    ctx.lineTo(radius, 0);
+    ctx.closePath();
+    ctx.fillStyle = ship.color;
+    ctx.fill();
+    // }
     if (ship.thrusting) {
-        ctx.moveTo(-radius, -radius * 0.4);
-        ctx.beginPath();
-        ctx.lineTo(-radius, radius * 0.4);
-        ctx.lineTo(-radius * 2, 0);
-        ctx.lineTo(-radius, -radius * 0.4);
-        ctx.fillStyle = "yellow";
-        ctx.fill();
+        const thrusterColors = ["orange", "yellow", "white"]; //["lightskyblue", "deepskyblue", "white"];
+        const numLoops = thrusterColors.length;
+        for (let i = 0; i < numLoops; i++) {
+            const halfWidth = 0.5 - i * 0.15;
+            ctx.moveTo(-radius, -radius * halfWidth);
+            ctx.beginPath();
+            ctx.lineTo(-radius, radius * halfWidth);
+            ctx.lineTo(-radius * 1.8, 0);
+            ctx.lineTo(-radius, -radius * halfWidth);
+            ctx.fillStyle = thrusterColors[i];
+            ctx.fill();
+        }
     }
 
     // un-rotate / un-translate
     ctx.rotate(-degreesToRadians(ship.facing));
+    ctx.translate(-x, -y);
+};
+
+const drawShockwave = (sw) => {
+    return;
+    const x = getCoordByPct(sw.x);
+    const y = getCoordByPct(sw.y);
+    const radius = getCoordByPct(sw.radius);
+    // rotate, translate
+    ctx.translate(x, y);
+
+    // Draw Circle
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+    ctx.closePath();
+    ctx.lineWidth = getCoordByPct(sw.velocity);
+    ctx.strokeStyle = "black";
+    ctx.stroke();
+    // ctx.fillStyle = "black";
+    // ctx.fill();
+
     ctx.translate(-x, -y);
 };
 
@@ -241,9 +312,14 @@ const drawOnce = () => {
         drawRectangle(o);
     }
 
-    // move / draw ships
-    for (const ship of ships) {
-        drawShip(ship);
+    // draw shockwaves
+    // for (const sw of shockwaves) {
+    //     drawShockwave(sw);
+    // }
+
+    // draw debris
+    for (const d of debris) {
+        drawCircle(d);
     }
 
     // draw asteroids
@@ -251,17 +327,22 @@ const drawOnce = () => {
         drawCircle(a);
     }
 
-    // move debris
-    for (const d of debris) {
-        drawCircle(d);
-    }
-
-    // move missiles
+    // draw missiles
     for (const m of missiles) {
         drawMissile(m);
     }
 
-    if (gameOver) {
+    // draw mines
+    for (const m of mines) {
+        drawMine(m);
+    }
+
+    // draw ships
+    for (const ship of ships) {
+        drawShip(ship);
+    }
+
+    if (!gameInProgress) {
         drawNames();
     }
 };
@@ -318,7 +399,7 @@ const drawLoop = (timeStamp) => {
 
     drawOnce();
 
-    if (!gameOver) {
+    if (gameInProgress) {
         window.requestAnimationFrame(drawLoop);
     } else {
         // End Game
@@ -355,9 +436,10 @@ const showTime = (seconds) => {
 let startTime = null;
 
 export {
-    drawCircle,
-    drawMissile,
-    drawRectangle,
+    // drawCircle,
+    // drawMissile,
+    // drawMine,
+    // drawRectangle,
     drawShip,
     drawNames,
     clearCanvas,

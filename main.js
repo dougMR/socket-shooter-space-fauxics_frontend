@@ -18,9 +18,13 @@ import { stopThrustSound } from "./module-web-audio-api.js";
 import { getUUID, setUUID, clearUUID } from "./module-uuid.js";
 import "./dev-tools.js";
 import { output } from "./module-output.js";
-import { showPlayersListOnStartScreen } from "./client-inputs.js";
 import {
-    hideLeaders,
+    showPlayersListOnStartScreen,
+    showBrandScreen,
+    showStartScreen,
+    showControlsScreen
+} from "./client-inputs.js";
+import {
     displayLeaders,
     // displayAllTimeLeaders,
 } from "./module-leaderboard.js";
@@ -69,11 +73,10 @@ const joinGame = (playerName) => {
                 popupMessage(serverResponse.error);
                 showNamePrompt();
             } else {
+                getGameStatus();
                 hideNamePrompt();
-                view.show(document.getElementById("controls-screen"));
-                // document
-                //     .getElementById("controls-screen")
-                //     .classList.remove("hidden");
+                // view.show(document.getElementById("controls-screen"));
+                showControlsScreen()
             }
         }
     );
@@ -81,7 +84,7 @@ const joinGame = (playerName) => {
 const rejoinGame = () => {
     console.log("rejoinGame()");
     connectToServer();
-    const uuid = getUUID() || setUUID();
+    const uuid = getUUID(); // || setUUID();
     hideNamePrompt();
 
     socket.emit("rejoin_game", uuid, (response) => {
@@ -90,13 +93,14 @@ const rejoinGame = () => {
             // we are reconnected as previous player
             // alert("you have rejoined as " + response.name);
             // if we call alert() in here, client re-disconnects if not click OK immediately
+            getGameStatus();
             popupMessage("you have rejoined as " + response.name);
             view.show(document.getElementById("controls-screen"));
             // document.getElementById("controls-screen").classList.remove("hidden");
         } else {
             // rejoin didn't work
             clearUUID();
-            showNamePrompt();
+            setTimeout(showNamePrompt, 500);
         }
     });
 };
@@ -137,13 +141,16 @@ const connectToServer = () => {
         socket.on("disconnect", (data) => {
             console.log("DISCONNECTED.");
             console.log("BECAUSE:", data);
+            //
+            setFrontendPlayers([]);
+            showBrandScreen();
         });
         // Players
         socket.on("updatePlayers", (playersFromServer) => {
             // !!! This is in competition with player updates from updateGameData
             console.log("updatePlayers()");
-            console.log("socket.id: ", socket.id);
-            console.log("numPlayers: ", playersFromServer.length);
+            // console.log("socket.id: ", socket.id);
+            console.log("numPlayers: ", playersFromServer.players.length);
             setFrontendPlayers(playersFromServer.players);
             // waitingPlayers = playersFromServer.waitingPlayers;
             for (const player of players) {
@@ -167,11 +174,12 @@ const connectToServer = () => {
             // }
             drawNames();
             showPlayersListOnStartScreen();
+            console.log("players:", players);
         });
 
         // Sounds
         socket.on("playSound", (soundString) => {
-            console.log("playSound",soundString);
+            // console.log("playSound", soundString);
             playSoundByNameString(soundString);
         });
         socket.on("stopSound", (soundString) => {
@@ -185,6 +193,8 @@ const connectToServer = () => {
             // console.log('updateGameData()');
             asteroids.splice(0, Infinity, ...data.asteroids);
             missiles.splice(0, Infinity, ...data.missiles);
+            mines.splice(0, Infinity, ...data.mines);
+            shockwaves.splice(0,Infinity, ...data.shockwaves);
             debris.splice(0, Infinity, ...data.debris);
             obstacles.splice(0, Infinity, ...data.obstacles);
             ships.splice(0, Infinity, ...data.ships);
@@ -197,14 +207,22 @@ const connectToServer = () => {
         });
         socket.on("endGame", () => {
             console.log("\r\nendGame\r\n");
-            gameOver = true;
-            displayLeaders();
-            stopThrustSound();
+            gameInProgress = false;
+
             // submitScoreToLeaderboard();
             // displayAllTimeLeaders();
-            view.show(document.getElementById("again-button"));
+            if (clientPlayer.onDeck) {
+                showStartScreen();
+            } else {
+                displayLeaders();
+                stopThrustSound();
+                view.show(document.getElementById("again-button"));
+            }
             // document.getElementById("again-button").classList.remove("hidden");
         });
+        // socket.on("updateGameStatus", (serverGameStatus) => {
+        //     gameStatus = serverGameStatus;
+        // })
     });
 };
 
@@ -233,13 +251,22 @@ const imReady = (yesOrNo) => {
 
 const startGame = (event) => {
     console.log("startGame()");
-    hideLeaders();
-    gameOver = false;
+    gameInProgress = true;
+    // setClientScore(0);
+    view.hide(document.getElementById("leaderboard"));
     view.hide(document.getElementById("controls-screen"));
     view.hide(document.getElementById("start-options"));
     startDrawLoop();
     stopSoundByNameString("themeMusic");
     playSoundLoopByNameString("themeMusic");
+};
+
+const getGameStatus = () => {
+    console.log("getGameStatus()");
+    socket.emit("get_game_status", (serverResponse) => {
+        console.log("serverResponse", serverResponse);
+        gameInProgress = serverResponse.inProgress;
+    });
 };
 
 //////////////////////////////////////
@@ -252,6 +279,8 @@ const startGame = (event) => {
 
 const asteroids = [];
 const missiles = [];
+const mines = [];
+const shockwaves = [];
 const debris = [];
 const obstacles = [];
 const ships = [];
@@ -259,34 +288,37 @@ const ships = [];
 let players = [];
 let waitingPlayers = [];
 let clientPlayer = null;
-let gameOver = true;
+let gameInProgress = false;
 let socket;
 
 // Start client
 window.dispatchEvent(new Event("resize"));
 
-output(getUUID());
+// output(getUUID());
 if (getUUID()) {
     // try to rejoin
     rejoinGame();
 } else {
-    showNamePrompt();
+    setTimeout(showNamePrompt, 500);
 }
 
 export {
     asteroids,
     missiles,
+    mines,
+    shockwaves,
     debris,
     obstacles,
     ships,
     players,
     waitingPlayers,
     clientPlayer,
-    gameOver,
+    gameInProgress,
     // voteAllHere,
     imReady,
     connectToServer,
     joinGame,
     // getLeaderboard,
     emit,
+    getGameStatus,
 };

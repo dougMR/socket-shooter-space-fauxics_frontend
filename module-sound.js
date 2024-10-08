@@ -4,6 +4,20 @@ console.log("module-sound.js");
     GAME SOUNDS
 
 */
+let gameVolume = 1;
+
+const setGameVolume = (value) => {
+    gameVolume = value;
+    // value: 0 - 1
+    for (const string in soundStrings) {
+        soundStrings[string].volume = value;
+    }
+    for (const key in soundCopies) {
+        for (const audioEl of soundCopies[key]) {
+            audioEl.volume = value;
+        }
+    }
+};
 const playSoundLoopByNameString = (soundString) => {
     // console.log("playSoundByNameString",soundString);
     const audioEl = soundStrings[soundString];
@@ -22,6 +36,7 @@ const dupeSound = (audioEl) => {
     // duplicate the audio element
     const key = audioEl.src;
     const newAudio = new Audio(audioEl.src);
+    newAudio.volume = gameVolume;
     if (!soundCopies[key]) {
         soundCopies[key] = [];
     }
@@ -102,4 +117,5 @@ export {
     stopSoundByNameString,
     registerSound,
     playSoundLoopByNameString,
+    setGameVolume,
 };

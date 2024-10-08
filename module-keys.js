@@ -1,7 +1,7 @@
 import {
     clientPlayer,
     emit,
-    gameOver
+    gameInProgress
 } from "./main.js";
 import { view } from "./view.js";
 import { startThrustSound, stopThrustSound } from "./module-web-audio-api.js";
@@ -24,13 +24,18 @@ const stopThrust = () => {
 };
 
 const shoot = () => {
-    // console.log("shoot. gameOver: ", gameOver);
     // console.log("shoot", clientPlayer.ship.alive);
     if (!clientPlayer.ship.alive) return;
     playSoundByNameString("laserSound");
     emit("broadcast_sound", "laserSound");
     emit("ship_shoot");
 };
+
+const shootMine = () => {
+    // playSoundByNameString("popgun");
+    // emit("broadcast_sound", "popgun");
+    emit("ship_shoot_mine");
+}
 
 const turn = (degChange) => {
     if (!clientPlayer.ship.alive) return;
@@ -72,10 +77,7 @@ const handleKeyDown = (event) => {
 
     if (keyObj) {
         event.preventDefault();
-        // keyObj.lastTimePressed = performance.now();
-        // keyObj.myFunction();
         keyObj.isDown = true;
-        // startKeyCheckInterval();
     }
 };
 
@@ -90,23 +92,10 @@ const handleKeyUp = (event) => {
         }
         keyObj.isDown = false;
     }
-
-    // const keyDown = keys.find((key) => key.isDown);
-    // if (!keyDown) {
-    //     // no keys down, stop key listener interval
-    //     stopKeyCheckInterval();
-    // }
 };
 
 const checkKeys = () => {
     for (const keyObj of keys) {
-        // if ( keyObj.isDown) {
-        //     console.log(
-        //         "keyObj",
-        //         keyObj.name,
-        //         performance.now() - keyObj?.lastTimePressed
-        //     );
-        // }
         if (
             keyObj.isDown &&
             keyObj?.lastTimePressed < performance.now() - keyObj?.frequency
@@ -170,7 +159,14 @@ const keysToAdd = [
     {
         name: ["  ", " ", "Space"],
         myFunction: () => {
-            if (clientPlayer.ship && !gameOver) shoot();
+            if (clientPlayer.ship && gameInProgress) shoot();
+        },
+        frequency: 500,
+    },
+    {
+        name: ["M", "m"],
+        myFunction: () => {
+            if (clientPlayer.ship && gameInProgress) shootMine();
         },
         frequency: 500,
     },

@@ -17,16 +17,23 @@
             <!-- game test -->
             <div id="brand-screen">
                 <div class="brand">
+                    <p>
+                        megaDoug games <em>presents</em><br /><br /><br /><br />
+                    </p>
                     <img
                         src="./images/megadoug-logo-512x512.png"
                         alt=""
                         srcset=""
                     />
                     <p class="game-name">Space Shooter</p>
-                    <p><br />megaDoug games</p>
+                    <p class="sub">
+                        <span class="normal">powered by</span> FAUXICS™
+                    </p>
+                    <p class="continue-prompt">click / tap to continue</p>
                 </div>
             </div>
             <div id="controls-screen" class="hidden">
+                <h2><em>CONTROLS</em></h2>
                 <p>
                     <span style="font-size: 0.8em; color: lightskyblue"
                         >move:</span
@@ -35,9 +42,7 @@
                         >shoot:</span
                     ><br />spacebar
                 </p>
-                <p style="font-size: 0.8em; color: lightskyblue">
-                    click/tap here if you understand the controls
-                </p>
+                <p class="continue-prompt">click / tap to continue</p>
             </div>
             <div id="start-options" class="hidden">
                 <div id="players-list"></div>
@@ -49,12 +54,12 @@
                     ><input type="checkbox" name="all-here" id="all-here" />
                     Everyone's Here</label
                 > -->
-                <p class="msg">when all players ready, game will start</p>
+                <p class="msg">the game will start when everyone‘s ready</p>
             </div>
             <canvas id="game-canvas" width="100" height="100"></canvas>
             <p id="score-box" class="text-box">00</p>
             <p id="timer-box" class="text-box">00</p>
-            <div id="name-prompt">
+            <div id="name-prompt" class="hidden">
                 <label for="name">Create a player name.</label>
                 <input type="text" name="player-name" id="player-name" />
                 <button class="ok">JOIN</button>
@@ -65,9 +70,29 @@
         </div>
         <p id="fps"></p>
         <div id="dev-tools">
+            <div class="volume-control">
+                <div class="volume-slider-container">
+                    <img
+                        src="./images/free-speaker-icon.png"
+                        class="speaker-icon"
+                        alt="speaker"
+                    />
+                    <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        value="0.75"
+                        step="0.01"
+                        class="slider"
+                        id="myRange"
+                    />
+                </div>
+            </div>
             <button id="show-players">SHOW PLAYERS</button>
             <!-- <button id="show-waiting-players">SHOW WAITING PLAYERS</button>= -->
             <button id="show-ships">SHOW SHIPS</button>
+            <button id="show-game-status">SHOW GAME STATUS</button>
+            <!-- <button id="test-callback">TEST CALLBACK</button> -->
             <div id="output"></div>
         </div>
         <script src="./socket.io/socket.io.js"></script>

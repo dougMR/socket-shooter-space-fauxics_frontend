@@ -1,85 +1,95 @@
-import { imReady,  players } from "./main.js";
+import { imReady, players, gameInProgress } from "./main.js";
 import { playSoundByNameString } from "./module-sound.js";
 import { drawOnce, resizeCanvas } from "./module-draw.js";
 import { view } from "./view.js";
-import { hideLeaders } from "./module-leaderboard.js";
-// import(playSoundByNameString)
-// import { voteAllHere } from "./main.js";
-const readyCheckBox = document.getElementById("ready");
-// const allHereCheckbox = document.getElementById("all-here");
+// const readyCheckBox = document.getElementById("ready");
+const ready = document.querySelector('label[for="ready"]');
+const brandScreen = document.getElementById("brand-screen");
+const controlsScreen = document.getElementById("controls-screen");
+const startScreen = document.getElementById("start-options");
+const leaderboard = document.getElementById("leaderboard");
 
-readyCheckBox.addEventListener("change", (event) => {
-    playSoundByNameString("chirp-select");
-    imReady(event.target.checked);
-});
+const namePromptIsClosed = () => {
+    return document.getElementById("name-prompt").classList.contains("hidden");
+}
 
-// allHereCheckbox.addEventListener("change", (event) => {
-//     playSoundByNameString("chirp-select");
-//     voteAllHere(event.target.checked);
-// });
-
-// const allHerePrompt = document.getElementById("all-here-prompt");
-
-// const hideAllHerePrompt = () => {
-//     allHerePrompt.classList.add("hidden");
-// };
-// const showAllHerePrompt = () => {
-//     allHerePrompt.classList.remove("hidden");
-// };
-// allHerePrompt.addEventListener("pointerdown", (event) => {
-//     console.log("all-here-prompt clicked");
-//     if (event.target.innerText === "YES") {
-//         console.log("yes clicked");
-//         hideAllHerePrompt();
-//         voteAllHere(true);
-//     } else if (event.target.innerText === "NO") {
-//         hideAllHerePrompt();
-//         voteAllHere(false);
-//     }
-// });
-
-// LISTENERS
-const showPlayersListOnStartScreen = async () => {
-    if (view.isHidden(document.getElementById("start-options"))) return;
+const showPlayersListOnStartScreen = () => {
+    if (view.isHidden(startScreen)) return;
     // show list of players
     let playerListText = "<span style='color: white;'>Players:</span></ br>";
     for (const p of players) {
         console.log("SHOW:", p.name);
-        playerListText += `<div class="leaderboard-entry"><p class="name"><span class="ship-icon" style="color:${p.ship.color};">&#9650;</span>&nbsp;${p.name}${p.onDeck ? "(waiting)": ""}</p><p class="connector" style="background-color:${p.ship.color};"></p></div>`;
+        playerListText += `<div class="leaderboard-entry"><p class="name"><span class="ship-icon" style="color:${
+            p.ship.color
+        };">&#9650;</span>&nbsp;${p.name}${
+            p.onDeck ? "(waiting)" : !p.connected ? "(disconnected)" : ""
+        }</p><p class="connector" style="background-color:${
+            p.ship.color
+        };"></p></div>`;
     }
-    // for (const wp of waitingPlayers) {
-    //     playerListText += `<div class="leaderboard-entry"><p class="name">(waiting)<span class="ship-icon" style="color:${wp.ship.color};">&#9650;</span>&nbsp;${wp.name}</p><p class="connector" style="background-color:${wp.ship.color};"></p></div>`;
-    // }
     const playerList = document.getElementById("players-list");
     playerList.innerHTML = playerListText;
 };
 
 const closeBrandScreen = () => {
+    if (!namePromptIsClosed()) return;
     playSoundByNameString("click");
-    // document.getElementById("brand-screen").classList.add("hidden");
-    view.hide(document.getElementById("brand-screen"));
-    // document.getElementById("controls-screen").classList.remove("hidden");
+    // brandScreen.classList.add("hidden");
+    view.hide(brandScreen);
+    // controlsScreen.classList.remove("hidden");
     showControlsScreen();
 };
 
+const showBrandScreen = () => {
+    view.show(brandScreen);
+    view.hide(startScreen);
+    view.hide(controlsScreen);
+    view.hide(leaderboard);
+}
+
 const showStartScreen = () => {
-    view.show(document.getElementById("start-options"));
+    view.show(startScreen);
+    view.hide(brandScreen);
+    view.hide(controlsScreen);
+    view.hide(leaderboard);
     document.getElementById("ready").checked = false;
-    // document.getElementById("all-here").checked = false;
     showPlayersListOnStartScreen();
+    // const checkbox = document.querySelector('label[for="ready"]');
+    const msg = document.querySelector("#start-options p.msg");
+    if (gameInProgress) {
+        console.log("hide ready checkbox");
+        // show "on deck" message
+        msg.innerHTML = "game in progress.  you can join the next one.";
+        // hide "ready" checkbox
+        view.hide(ready);
+    } else {
+        // show "joining game" message
+        msg.innerHTML = "the game will start when everyone’s ready";
+        // show "ready" checkbox
+        view.show(ready);
+    }
 };
 
 const showControlsScreen = () => {
-    view.show(document.getElementById("controls-screen"));
-}
+    view.show(controlsScreen);
+    view.hide(startScreen);
+    view.hide(brandScreen);
+    view.hide(leaderboard);
+};
 const closeControlsScreen = () => {
+    if (!namePromptIsClosed()) return;
     console.log("close controls-screen.");
     playSoundByNameString("click");
-    // document.getElementById("controls-screen").classList.add("hidden");
-    view.hide(document.getElementById("controls-screen"));
-    // document.getElementById("start-options").classList.remove("hidden");
+    view.hide(controlsScreen);
     showStartScreen();
 };
+
+// LISTENERS
+
+ready.querySelector("#ready").addEventListener("change", (event) => {
+    playSoundByNameString("chirp-select");
+    imReady(event.target.checked);
+});
 
 window.addEventListener("resize", function () {
     console.log("resize");
@@ -99,8 +109,8 @@ document
     .addEventListener("pointerdown", (event) => {
         // event.target.classList.add("hidden");
         view.hide(event.target);
-        hideLeaders();
+        view.hide(leaderboard)
         closeControlsScreen();
     });
 
-export { showPlayersListOnStartScreen };
+export { showPlayersListOnStartScreen, showBrandScreen, showStartScreen,showControlsScreen };

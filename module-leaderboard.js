@@ -19,9 +19,13 @@ const sortPlayersByScore = (a, b) => {
 };
 
 const displayLeaders = () => {
-    players.sort(sortPlayersByScore);
+    const inGamePlayers = players.filter((p) => !p.onDeck && p.connected).sort(sortPlayersByScore);
+    if (inGamePlayers.length === 0) {
+        view.hide(leaderboard);
+        return;
+    }
     let leadersText = "";
-    for (const p of players) {
+    for (const p of inGamePlayers) {
         leadersText += `<div class="leaderboard-entry${
             checkAlive(p) ? "" : " dead"
         }"><p class="name"><span class="ship-icon" style="color:${
@@ -70,9 +74,9 @@ const displayLeaders = () => {
 //     // }
 // };
 
-const hideLeaders = () => {
-    leaderboard.classList.add("hidden");
-};
+// const hideLeaders = () => {
+//     leaderboard.classList.add("hidden");
+// };
 
 // const submitScoreToLeaderboard = async (player) => {
 //     console.log("submitScoreToLeaderboard()");
@@ -91,7 +95,6 @@ const hideLeaders = () => {
 
 export {
     displayLeaders,
-    hideLeaders,
     // submitScoreToLeaderboard,
     // displayAllTimeLeaders,
 };
