@@ -361,6 +361,7 @@ body {
             &:hover {
                 opacity: 1;
             }
+            
             &::-webkit-slider-thumb {
                 -webkit-appearance: none;
                 appearance: none;
@@ -377,6 +378,16 @@ body {
                 cursor: pointer;
             }
 
+        }
+    }
+}
+
+#dev-tools {
+    font-family: sans-serif;
+    & label {
+        vertical-align: middle;
+        & input[type="checkbox"] {
+            border-width: 2px;
         }
     }
 }

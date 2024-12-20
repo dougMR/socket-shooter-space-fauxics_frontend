@@ -8,6 +8,7 @@ import {
     showTime,
     startDrawLoop,
     setClientScore,
+    addScreenText,
 } from "./module-draw.js";
 import {
     playSoundByNameString,
@@ -22,7 +23,7 @@ import {
     showPlayersListOnStartScreen,
     showBrandScreen,
     showStartScreen,
-    showControlsScreen
+    showControlsScreen,
 } from "./client-inputs.js";
 import {
     displayLeaders,
@@ -76,7 +77,7 @@ const joinGame = (playerName) => {
                 getGameStatus();
                 hideNamePrompt();
                 // view.show(document.getElementById("controls-screen"));
-                showControlsScreen()
+                showControlsScreen();
             }
         }
     );
@@ -144,6 +145,10 @@ const connectToServer = () => {
             //
             setFrontendPlayers([]);
             showBrandScreen();
+            // show name prompt
+            showNamePrompt();
+            // try to rejoin
+            // rejoinGame(); // <-- causes endless connect/disconnect (?)
         });
         // Players
         socket.on("updatePlayers", (playersFromServer) => {
@@ -194,7 +199,7 @@ const connectToServer = () => {
             asteroids.splice(0, Infinity, ...data.asteroids);
             missiles.splice(0, Infinity, ...data.missiles);
             mines.splice(0, Infinity, ...data.mines);
-            shockwaves.splice(0,Infinity, ...data.shockwaves);
+            shockwaves.splice(0, Infinity, ...data.shockwaves);
             debris.splice(0, Infinity, ...data.debris);
             obstacles.splice(0, Infinity, ...data.obstacles);
             ships.splice(0, Infinity, ...data.ships);
@@ -223,6 +228,12 @@ const connectToServer = () => {
         // socket.on("updateGameStatus", (serverGameStatus) => {
         //     gameStatus = serverGameStatus;
         // })
+        socket.on("shipDestroyed", (playerId) => {
+            // Display destroyed player's name at explosion location
+            const ship = ships.find((s) => s.playerId === playerId);
+            const playerName = players.find((p) => p.id === playerId).name;
+            if (ship && playerName) addScreenText(playerName, ship.x, ship.y, 2000, "#ff3300");
+        });
     });
 };
 
@@ -237,8 +248,12 @@ const setFrontendPlayers = (newPlayers) => {
     for (const p of players) {
         playersText += `<br /><div style="color: ${p.ship.color};" >${p.name}${
             p.onDeck ? "(waiting)" : ""
-        } ... ${p.score}</div>`;
+        }${p.ready ? "(√)" : ""} ... ${p.score}</div>`;
+        console.log(p.name, "ready:", p.ready);
         if (p.id === socket.id) clientPlayer = p;
+    }
+    if (!document.getElementById("players-list").classList.contains("hidden")) {
+        showPlayersListOnStartScreen();
     }
     setClientScore(clientPlayer?.score);
 
@@ -256,6 +271,7 @@ const startGame = (event) => {
     view.hide(document.getElementById("leaderboard"));
     view.hide(document.getElementById("controls-screen"));
     view.hide(document.getElementById("start-options"));
+    view.hide(document.getElementById("again-button"));
     startDrawLoop();
     stopSoundByNameString("themeMusic");
     playSoundLoopByNameString("themeMusic");

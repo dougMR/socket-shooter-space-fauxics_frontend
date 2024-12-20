@@ -41,6 +41,19 @@ slider.addEventListener("change", (event) => {
     setGameVolume(event.target.value);
 });
 
+// dev visuals toggl4
+let devToolsVisualsOn = false;
+const visualizationsCheckbox = document.getElementById("visual-helpers");
+visualizationsCheckbox.addEventListener("change", (event) => {
+    devToolsVisualsOn = event.target.checked;
+});
+
+let playerNamesON = true;
+const playerNamesCheckbox = document.getElementById("player-names-toggle");
+playerNamesCheckbox.addEventListener("change", (event) => {
+    playerNamesON = event.target.checked;
+});
+
 // const testCallbackBtn = document
 // .querySelector("button#test-callback");
 
@@ -48,4 +61,4 @@ slider.addEventListener("change", (event) => {
 //         console.log("gameInProgress: ",gameInProgress);
 
 //     });
-export { showPlayersButton };
+export { showPlayersButton, devToolsVisualsOn, playerNamesON };

@@ -4,6 +4,7 @@ console.log("module-sound.js");
     GAME SOUNDS
 
 */
+import { setThrustVolume } from "./module-web-audio-api.js";
 let gameVolume = 1;
 
 const setGameVolume = (value) => {
@@ -17,6 +18,7 @@ const setGameVolume = (value) => {
             audioEl.volume = value;
         }
     }
+    setThrustVolume(value);
 };
 const playSoundLoopByNameString = (soundString) => {
     // console.log("playSoundByNameString",soundString);

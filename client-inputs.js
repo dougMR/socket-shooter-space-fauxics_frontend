@@ -11,7 +11,7 @@ const leaderboard = document.getElementById("leaderboard");
 
 const namePromptIsClosed = () => {
     return document.getElementById("name-prompt").classList.contains("hidden");
-}
+};
 
 const showPlayersListOnStartScreen = () => {
     if (view.isHidden(startScreen)) return;
@@ -22,7 +22,13 @@ const showPlayersListOnStartScreen = () => {
         playerListText += `<div class="leaderboard-entry"><p class="name"><span class="ship-icon" style="color:${
             p.ship.color
         };">&#9650;</span>&nbsp;${p.name}${
-            p.onDeck ? "(waiting)" : !p.connected ? "(disconnected)" : ""
+            p.onDeck
+                ? "(waiting)"
+                : !p.connected
+                ? "(disconnected)"
+                : p.ready
+                ? "(√)"
+                : ""
         }</p><p class="connector" style="background-color:${
             p.ship.color
         };"></p></div>`;
@@ -45,7 +51,7 @@ const showBrandScreen = () => {
     view.hide(startScreen);
     view.hide(controlsScreen);
     view.hide(leaderboard);
-}
+};
 
 const showStartScreen = () => {
     view.show(startScreen);
@@ -109,8 +115,13 @@ document
     .addEventListener("pointerdown", (event) => {
         // event.target.classList.add("hidden");
         view.hide(event.target);
-        view.hide(leaderboard)
+        view.hide(leaderboard);
         closeControlsScreen();
     });
 
-export { showPlayersListOnStartScreen, showBrandScreen, showStartScreen,showControlsScreen };
+export {
+    showPlayersListOnStartScreen,
+    showBrandScreen,
+    showStartScreen,
+    showControlsScreen,
+};

@@ -8,6 +8,7 @@ https://jackyef.com/posts/building-an-audio-loop-player-on-the-web */
 let isPlaying = false;
 
 const audioCtx = new window.AudioContext();
+const gainNode = audioCtx.createGain();
 const source = audioCtx.createBufferSource();
 const arrayBuffer = await fetch("./audio/thrust.mp3").then((res) =>
     res.arrayBuffer()
@@ -16,7 +17,8 @@ const arrayBuffer = await fetch("./audio/thrust.mp3").then((res) =>
 const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
 source.buffer = audioBuffer;
 source.loop = true;
-source.connect(audioCtx.destination);
+source.connect(gainNode).connect(audioCtx.destination);
+
 audioCtx.suspend();
 source.start();
 
@@ -32,4 +34,8 @@ const stopThrustSound = () => {
     }
 };
 
-export { startThrustSound, stopThrustSound };
+const setThrustVolume = (value) => {
+    gainNode.gain.value = value;
+}
+
+export { startThrustSound, stopThrustSound,setThrustVolume };
